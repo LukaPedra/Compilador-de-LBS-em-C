@@ -16,7 +16,10 @@
 -------------------------------------------------------------*/
 
 typedef int(*funcp)(int x);
+
 void gera_codigo(FILE *f, unsigned char code[], funcp *entry);
+
+static void error (const char *msg, int line);
 
 
 
@@ -68,8 +71,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	size_t linesize = 0;
 
 	if (code == NULL){
-		puts("Falha ao alocar memória");
-		return -1;
+		error("Vetor código nulo",0);
 	}
 
 	func_cont = 0;
@@ -78,8 +80,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	aux_code = (unsigned char*)malloc(MEMORY_FOR_CODE);
 
 	if (aux_code == NULL){
-		puts("Falha ao alocar memória");
-		return -1;
+		error("Falha ao alocar memória",0);
 	}
 
 
@@ -125,4 +126,9 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	}
 	return;
+}
+
+static void error (const char *msg, int line) {
+    fprintf(stderr, "Erro %s na linha %d\n", msg, line);
+    exit(EXIT_FAILURE);
 }
