@@ -10,9 +10,9 @@
 
 
 /* ------------------------ PROTOTIPOS -----------------------
-=                                                            =
-=	Funções protipos que serão utilizadas durante o código   =
-=                                                            =
+                                                           
+    Funções protipos que serão utilizadas durante o código   
+                                                           
 -------------------------------------------------------------*/
 
 typedef int(*funcp)(int x);
