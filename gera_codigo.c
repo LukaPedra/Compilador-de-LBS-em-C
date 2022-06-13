@@ -2,10 +2,7 @@
 #include <stdlib.h>
 
 #define MAXLINE 50
-#define MEMORY_FOR_CODE 2048  // 2048 = 32 bytes da função LBS * max 50 linhas = 1600, arrendondamos para 2048
-
-
-
+#define MEMORY_FOR_CODE 2048  // 2048 - 32 bytes da função LBS * max 50 linhas = 1600, arrendondamos para 2048
 
 
 
@@ -31,33 +28,6 @@ unsigned char func_cont = 0;
 unsigned char curr_line = 0;
 
 unsigned char aux_code = NULL;
-
-
-
-int main(void){
-	FILE *fp;
-	fp = fopen("LBS constant.txt","r");
-	char *line_buf = NULL; //String com o conteúdo de uma linha
-	size_t line_buf_size = 0;
-	int line_Count = 0;
-	size_t line_size;
-	
-	if(!fp) {
-		printf("Ocorreu um erro ao abrir o arquivo");
-		exit(1);
-	}
-	line_size = getline(&line_buf, &line_buf_size, fp);
-	while (line_size >= 0){
-		line_Count++;
-		printf("line[%06d]: chars=%06zd, buf size=%06zu, contents:\t %s", line_Count, line_size, line_buf_size, line_buf);
-
-		line_size = getline(&line_buf, &line_buf_size, fp); //Próxima linha 
-	}
-	//free(line_buf);
-	line_buf = NULL;
-	fclose(fp);
-	puts("");
-}
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -127,11 +97,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 	return;
 }
-<<<<<<< HEAD
 
 static void error (const char *msg, int line) {
     fprintf(stderr, "Erro %s na linha %d\n", msg, line);
     exit(EXIT_FAILURE);
 }
-=======
->>>>>>> 7aad62e1b2c5fd6c35ec017b0959c11b0b51c529
