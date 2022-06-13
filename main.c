@@ -6,7 +6,7 @@
 int main(void){
 	FILE *fp;
 	fp = fopen("LBS constant.txt","r");
-	char *line_buf = NULL; //String com o conteúdo de uma linha
+	/*char *line_buf = NULL; //String com o conteúdo de uma linha
 	size_t line_buf_size = 0;
 	int line_Count = 0;
 	size_t line_size;
@@ -25,5 +25,8 @@ int main(void){
 	//free(line_buf);
 	line_buf = NULL;
 	fclose(fp);
-	puts("");
+	puts("");*/
+	unsigned char teste[2048];
+	funcp *entry;
+	gera_codigo(fp, teste, entry);
 }

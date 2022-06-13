@@ -27,7 +27,7 @@ unsigned char func_cont = 0;
 
 unsigned char curr_line = 0;
 
-unsigned char aux_code = NULL;
+unsigned char *aux_code = NULL;
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -36,9 +36,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	int c;				// Caracter do arquivo
 	int line_count = 1;	// Variavél que armazna linha atual
 	int ret;			// Variavél que armazena valor de retorno
-	char *command;
-	char *line = NULL;
-	size_t linesize = 0;
 
 	if (code == NULL){
 		error("Vetor código nulo",0);
@@ -102,13 +99,13 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "%d = %c", &idx0, &c0) != 2){
 					error("Comando inválido", line_count);
 				}
-				if (c0 = 'c'){ // CALL
-					int f, idx1;
+				if ((c0 == 'c')){ // CALL
+					int fx, idx1;
 					char var1;
-					if (fscanf(f, "all %d %c%d",&f, &var1, &idx1) != 3){
+					if (fscanf(f, "all %d %c%d",&fx, &var1, &idx1) != 3){
 						error("Comando inválido", line_count);
 					}
-					printf("%c%d = call %d %c%d\n",var0 ,idx0, f, var1, idx1);
+					printf("%c%d = call %d %c%d\n",var0 ,idx0, fx, var1, idx1);
 
 				}
 
