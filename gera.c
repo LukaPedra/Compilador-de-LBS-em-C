@@ -10,9 +10,9 @@
 
 
 /* ------------------------ PROTOTIPOS -----------------------
-=                                                            =
-=	Funções protipos que serão utilizadas durante o código   =
-=                                                            =
+                                                           
+    Funções protipos que serão utilizadas durante o código   
+                                                           
 -------------------------------------------------------------*/
 
 typedef int(*funcp)(int x);
@@ -127,8 +127,11 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 	return;
 }
+<<<<<<< HEAD
 
 static void error (const char *msg, int line) {
     fprintf(stderr, "Erro %s na linha %d\n", msg, line);
     exit(EXIT_FAILURE);
 }
+=======
+>>>>>>> 7aad62e1b2c5fd6c35ec017b0959c11b0b51c529
