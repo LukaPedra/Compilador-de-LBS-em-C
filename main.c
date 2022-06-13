@@ -1,17 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include "gera_codigo.h"
 
-#define MAXLINE 50
 
-typedef int(*funcp)(int x);
-void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
-	unsigned char c;
-	char *comand;
-	char *line = NULL;
-	size_t linesize = 0;
-	int line_Count = 0;
-
-}
 
 int main(void){
 	FILE *fp;
@@ -19,7 +9,7 @@ int main(void){
 	char *line_buf = NULL; //String com o conteúdo de uma linha
 	size_t line_buf_size = 0;
 	int line_Count = 0;
-	ssize_t line_size;
+	size_t line_size;
 	
 	if(!fp) {
 		printf("Ocorreu um erro ao abrir o arquivo");
