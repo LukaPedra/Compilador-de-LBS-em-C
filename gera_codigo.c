@@ -18,8 +18,17 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry);
 
 static void error (const char *msg, int line);
 
+int lbs_to_asm_func();
 
+int lbs_to_asm_end();
 
+int lbs_to_asm_ret();
+
+int lbs_to_asm_zret();
+
+int lbs_to_asm_call();
+
+int lbs_to_asm_opr();
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
@@ -61,6 +70,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 				printf("function\n");
+				func_cont++;
 				break;
 			}
 
@@ -69,7 +79,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "nd%c", &c0) != 1){
 					error("Comando inválido", line_count);
 				}
-				printf("end\n");
+				//printf("end\n");
+				lbs_to_asm_end();
 				break;
 			}
 
@@ -133,4 +144,13 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 static void error (const char *msg, int line) {
     fprintf(stderr, "Erro %s na linha %d\n", msg, line);
     exit(EXIT_FAILURE);
+}
+
+
+/* ------------------ TRADUÇÃO LBS TO ASM --------------------- */
+
+int lbs_to_asm_end(){
+	printf("leave\n");
+	printf("ret\n");
+	return 0;
 }
