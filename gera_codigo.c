@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAXLINE 50
 #define MEMORY_FOR_CODE 2048  // 2048 - 32 bytes da função LBS * max 50 linhas = 1600, arrendondamos para 2048
@@ -61,6 +62,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 				printf("function\n");
+				func_cont++;
 				break;
 			}
 
@@ -127,6 +129,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		fscanf(f, " ");
 
 	}
+	printf("Quantidade de funções %d",func_cont);
 	return;
 }
 
