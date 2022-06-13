@@ -59,32 +59,66 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		switch(c){ 	// SWITCH CASE PARA ACHAR A FUNÇÃO CORRESPONDENTE
 
 			case 'f': { // FUNÇÃO
-
+				char c0;
+				if (fscanf(f, "unction%c", &c0) != 1){
+					error("Comando inválido", line_count);
+				}
+				printf("function\n");
 				break;
 			}
 
 			case 'e': { // END
-
+				char c0;
+				if (fscanf(f, "nd%c", &c0) != 1){
+					error("Comando inválido", line_count);
+				}
+				printf("end\n");
 				break;
 			}
 
 			case 'r': {	// RETORNO INCONDICIONAL
-
+				int idx0;
+				char var0;
+				if (fscanf(f, "et %c%d", &var0, &idx0) != 2){
+					error("Comando inválido", line_count);
+				}
+				printf("ret %c%d\n",var0 ,idx0);
 				break;
 			}
 
 			case 'z': {	// RETORNO CONDICIONAL
-
+				int idx0, idx1;
+				char var0, var1;
+				if (fscanf(f, "ret %c%d %c%d", &var0, &idx0, &var1, &idx1) != 4){
+					error("Comando inválido", line_count);
+				}
+				printf("ret %c%d %c%d\n",var0 ,idx0, var1, idx1);
 				break;
 			}
 
 			case 'v': {	// ATRIBUIÇÃO DE VARIAVEL
-
+				char var0 = c, c0;
+				int idx0;
+				if (fscanf(f, "%d = %c", &idx0, &c0) != 2){
+					error("Comando inválido", line_count);
+				}
 				if (c0 = 'c'){ // CALL
+					int f, idx1;
+					char var1;
+					if (fscanf(f, "all %d %c%d",&f, &var1, &idx1) != 3){
+						error("Comando inválido", line_count);
+					}
+					printf("%c%d = call %d %c%d\n",var0 ,idx0, f, var1, idx1);
 
 				}
 
 				else {			// OPERAÇÃO ARITMETICA
+					int idx1, idx2;
+					char var1 = c0, var2, op;
+					if (fscanf(f, "%d %c %c%d", &idx1, &op, &var2, &idx2) != 4){
+						error("Comando inválido", line_count);
+					}
+					printf("%c%d = %c%d %c %c%d\n",var0, idx0, var1, idx1, op, var2, idx2);
 
 				}
 
@@ -93,6 +127,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 			default: error("Comando desconhecido",line_count);
 		}
 		line_count++;
+		fscanf(f, " ");
 
 	}
 	return;
