@@ -2,9 +2,6 @@
 #include <stdlib.h>
 
 #define MAXLINE 50
-#define MEMORY_FOR_CODE 2048  // 2048 - 32 bytes da função LBS * max 50 linhas = 1600, arrendondamos para 2048
-
-
 
 /* ------------------------ PROTOTIPOS -----------------------
                                                            
@@ -36,8 +33,6 @@ unsigned char func_cont = 0; //Contar o número de funções
 
 unsigned char curr_line = 0; //Qual é a linha atual
 
-unsigned char *aux_code = NULL;
-
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
 void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
@@ -51,14 +46,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 
 	func_cont = 0;
-
-
-	aux_code = (unsigned char*)malloc(MEMORY_FOR_CODE);
-
-	if (aux_code == NULL){
-		error("Falha ao alocar memória",0);
-	}
-
 
 	while((c = fgetc(f)) != EOF){ // LENDO O ARQUIVO ATÉ O FIM
 
