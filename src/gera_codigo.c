@@ -29,7 +29,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
-unsigned char func_cont = 0; //Contar o número de funções
+unsigned char func_count = 0;
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -42,7 +42,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		error("Vetor código nulo",0);
 	}
 
-	func_cont = 0;
+	func_count = 0;
 
 	while((c = fgetc(f)) != EOF){
 
@@ -64,7 +64,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 				//printf("function\n");
 				lbs_to_asm_func();
-				func_cont++;
+				func_count++;
 				break;
 			}
 
