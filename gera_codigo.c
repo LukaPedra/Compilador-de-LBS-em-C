@@ -23,9 +23,9 @@ static void error (const char *msg, int line);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
-unsigned char func_cont = 0;
+unsigned char func_cont = 0; //Contar o número de funções
 
-unsigned char curr_line = 0;
+unsigned char curr_line = 0; //Qual é a linha atual
 
 unsigned char *aux_code = NULL;
 
@@ -89,7 +89,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "ret %c%d %c%d", &var0, &idx0, &var1, &idx1) != 4){
 					error("Comando inválido", line_count);
 				}
-				printf("ret %c%d %c%d\n",var0 ,idx0, var1, idx1);
+				printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
 				break;
 			}
 
