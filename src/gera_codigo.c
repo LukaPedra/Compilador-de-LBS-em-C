@@ -15,7 +15,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry);
 
 static void error (const char *msg, int line);
 
-int lbs_to_asm_func();
+int lbs_to_asm_func(int funcLabel);
 
 int lbs_to_asm_end();
 
@@ -63,7 +63,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				}
 
 				//printf("function\n");
-				lbs_to_asm_func();
+				lbs_to_asm_func(func_count);
 				func_count++;
 				break;
 			}
@@ -222,7 +222,7 @@ int lbs_to_asm_end(){
 	return 0;
 }
 
-int lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
+int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
 
 	/* ------- CASO FUNCTION ------
 
@@ -233,6 +233,7 @@ int lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECIS
 
 	--------------------------*/
 
+	printf("%d:\n",funcLabel);
 	printf("pushq %%rbp\n");
 	printf("movq %%rsp, %%rbp\n");
 	printf("subq $32, %%rsp\n");
@@ -505,7 +506,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 	}
 
 	int access_pilha = -4*(idx0+1);
-	printf("call <fx>\n");
+	printf("call %d\n",fx);
 	printf("movl %%eax, %d(%%rbp)\n",access_pilha);
 	puts("");
 
@@ -562,7 +563,7 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 		}
 
 		case 'p': {
-			printf("movl <p%d>, %%r10d\n", idx0);
+			printf("movl %%edi, %%r10d\n");
 			puts("");
 
 			break;
