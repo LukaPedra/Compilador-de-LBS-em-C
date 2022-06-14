@@ -25,20 +25,18 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
 
 int lbs_to_asm_call();
 
-int lbs_to_asm_opr();
+int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
 unsigned char func_cont = 0; //Contar o número de funções
 
-unsigned char curr_line = 0; //Qual é a linha atual
-
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
 void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
-	int c;				// Caracter do arquivo
-	int line_count = 1;	// Variavél que armazna linha atual
+	int c;				// CARACTER DO ARQUIVO
+	int line_count = 1;	// VARIAVEL QUE ARMAZENA LINHA ATUAL
 
 	if (code == NULL){
 		error("Vetor código nulo",0);
@@ -46,75 +44,145 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	func_cont = 0;
 
-	while((c = fgetc(f)) != EOF){ // LENDO O ARQUIVO ATÉ O FIM
+	while((c = fgetc(f)) != EOF){
 
-		switch(c){ 	// SWITCH CASE PARA ACHAR A FUNÇÃO CORRESPONDENTE
+		switch(c){
 
-			case 'f': { // FUNÇÃO
+			case 'f': { 
+
+				/* --------- LEITURA CASO F -------------
+
+				caso f 	=== function
+
+				----------------------------------------*/
+
 				char c0;
+
 				if (fscanf(f, "unction%c", &c0) != 1){
 					error("Comando inválido", line_count);
 				}
+
 				//printf("function\n");
 				lbs_to_asm_func();
 				func_cont++;
 				break;
 			}
 
-			case 'e': { // END
+			case 'e': {
+
+				/* --------- LEITURA CASO E -------------
+
+				caso e 	=== end
+
+				----------------------------------------*/
+
 				char c0;
+
 				if (fscanf(f, "nd%c", &c0) != 1){
 					error("Comando inválido", line_count);
 				}
+
 				//printf("end\n");
 				lbs_to_asm_end();
 				break;
 			}
 
-			case 'r': {	// RETORNO INCONDICIONAL
+			case 'r': {
+
+				/* --------- LEITURA CASO R -------------
+
+				caso r 	=== ret varpc
+
+				----------------------------------------*/
+
 				int idx0;
 				char var0;
+
 				if (fscanf(f, "et %c%d", &var0, &idx0) != 2){
 					error("Comando inválido", line_count);
 				}
+
 				//printf("ret %c%d\n",var0 ,idx0);
 				lbs_to_asm_ret(var0,idx0);
 				break;
 			}
 
-			case 'z': {	// RETORNO CONDICIONAL
+			case 'z': {
+
+				/* --------- LEITURA CASO Z -------------
+
+				caso z 	=== zret varpc varpc
+
+				----------------------------------------*/
+
 				int idx0, idx1;
 				char var0, var1;
+
 				if (fscanf(f, "ret %c%d %c%d", &var0, &idx0, &var1, &idx1) != 4){
 					error("Comando inválido", line_count);
 				}
+
 				printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
 				break;
 			}
 
-			case 'v': {	// ATRIBUIÇÃO DE VARIAVEL
+			case 'v': {
+
+				/* --------- LEITURA CASO V -------------
+
+				caso v 	=== var num
+
+				BIFURCAÇÕES
+
+				caso c === call
+
+				caso op === operações
+
+				----------------------------------------*/
+
 				char var0 = c, c0;
 				int idx0;
+
 				if (fscanf(f, "%d = %c", &idx0, &c0) != 2){
 					error("Comando inválido", line_count);
 				}
-				if ((c0 == 'c')){ // CALL
+
+				if ((c0 == 'c')){
+
+					/* --------- LEITURA CASO C -------------
+
+					caso c === call num varpc
+
+					----------------------------------------*/
+
 					int fx, idx1;
 					char var1;
+
 					if (fscanf(f, "all %d %c%d",&fx, &var1, &idx1) != 3){
 						error("Comando inválido", line_count);
 					}
+
 					printf("%c%d = call %d %c%d\n",var0 ,idx0, fx, var1, idx1);
 
 				}
 
-				else {			// OPERAÇÃO ARITMETICA
+				else {
+
+					/* --------- LEITURA CASO OP -------------
+
+					caso op === varpc op varpc
+
+					----------------------------------------*/
+
 					int idx1, idx2;
 					char var1 = c0, var2, op;
+
 					if (fscanf(f, "%d %c %c%d", &idx1, &op, &var2, &idx2) != 4){
 						error("Comando inválido", line_count);
 					}
-					printf("%c%d = %c%d %c %c%d\n",var0, idx0, var1, idx1, op, var2, idx2);
+
+					//printf("%c%d = %c%d %c %c%d\n",var0, idx0, var1, idx1, op, var2, idx2);
+					lbs_to_asm_opr(var0, idx0, var1, idx1, op, var2, idx2);
 
 				}
 
@@ -143,6 +211,7 @@ int lbs_to_asm_end(){
 
 	leave			   === LEAVE 
 	ret				   === RETORNO
+
 	--------------------------*/
 
 	printf("leave\n");
@@ -159,6 +228,7 @@ int lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECIS
 	movq %rsp, %rbp		  ===  INICIALIZANDO A PILHA
 	subq $32, %rsp		  ===  ABRINDO OS 32 ESPAÇOS PARA ARMAZENAR OS 20 BYTES POSSÍVEIS
 	movl %edi, -28(%rbp)  ===  SALVANDO O VALOR DE EDI NA POSIÇÃO 28 PARA PODER ACESSAR ELE DEPOIS
+
 	--------------------------*/
 
 	printf("pushq %%rbp\n");
@@ -255,21 +325,26 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 	CASO OP *
 
 	imull var2, %r10d					=== MULTIPLICANDO O VAR2 EM R10D
+
 	------------------------------------------*/
 
 	switch(var1){
 		
 		case '$': {
+			printf("movl $%d, %%r10d\n", idx1);
 
 			break;
 		}
 
 		case 'v': {
+			int access_pilha = -4*(idx1+1);
+			printf("movl %d(%%rbp), %%r10d\n", access_pilha);
 
 			break;
 		}
 
 		case 'p': {
+			printf("movl <p%d>, %%r10d\n", idx1);
 
 			break;
 		}
@@ -283,16 +358,20 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			switch(var2){
 				
 				case '$': {
+					printf("addl $%d, %%r10d\n", idx2);
 
 					break;
 				}
 
 				case 'v': {
+					int access_pilha = -4*(idx2+1);
+					printf("addl %d(%%rbp), %%r10d\n", access_pilha);
 
 					break;
 				}
 
 				case 'p': {
+					printf("addl <p%d>, %%r10d\n", idx2);
 
 					break;
 				}
@@ -307,16 +386,20 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			switch(var2){
 				
 				case '$': {
+					printf("subl $%d, %%r10d\n", idx2);
 
 					break;
 				}
 
 				case 'v': {
+					int access_pilha = -4*(idx2+1);
+					printf("subl %d(%%rbp), %%r10d\n", access_pilha);
 
 					break;
 				}
 
 				case 'p': {
+					printf("subl <p%d>, %%r10d\n", idx2);
 
 					break;
 				}
@@ -331,16 +414,20 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			switch(var2){
 				
 				case '$': {
+					printf("imull $%d, %%r10d\n", idx2);
 
 					break;
 				}
 
 				case 'v': {
+					int access_pilha = -4*(idx2+1);
+					printf("imull %d(%%rbp), %%r10d\n", access_pilha);
 
 					break;
 				}
 
 				case 'p': {
+					printf("imull <p%d>, %%r10d\n", idx2);
 
 					break;
 				}
@@ -351,6 +438,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 		}
 		default: return -1; //error
 	}
+	puts("");
 
 	return 0;
 }
