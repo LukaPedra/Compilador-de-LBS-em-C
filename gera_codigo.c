@@ -23,7 +23,7 @@ int lbs_to_asm_ret(char var, int idx);
 
 int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
 
-int lbs_to_asm_call();
+int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1);
 
 int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2);
 
@@ -122,7 +122,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 
-				printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
+				//printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
+				lbs_to_asm_zret(var0, var1, idx0, idx1);
 				break;
 			}
 
@@ -162,7 +163,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 						error("Comando inválido", line_count);
 					}
 
-					printf("%c%d = call %d %c%d\n",var0 ,idx0, fx, var1, idx1);
+					//printf("%c%d = call %d %c%d\n",var0 ,idx0, fx, var1, idx1);
+					lbs_to_asm_call(var0, idx0, fx, var1, idx1);
 
 				}
 
@@ -242,7 +244,7 @@ int lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECIS
 
 int lbs_to_asm_ret(char var0, int idx0){
 
-	/* ------- CASO RETORNO CONDICIONAL ------
+	/* ------- CASO RETORNO INCONDICIONAL ------
 
 	POSSÍVEIS CASOS
 
@@ -438,7 +440,141 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 		}
 		default: return -1; //error
 	}
+
+	int access_pilha = -4*(idx0+1);
+	printf("movl %%r10d, %d(%%rbp)\n", access_pilha);
 	puts("");
+
+	return 0;
+}
+
+int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
+
+	/* ----------------- CASO CALL ----------------
+
+	POSSIVEIS CASOS
+
+	var = call num varpc
+
+	var1 :== constante($) - variavel(V) - parametro(P)
+
+	CASO VAR1 $
+
+	movl $constante, %edi			=== SALVANDO A CONSTANTE EM EDI
+	
+	CASO VAR1 V
+
+	movl -x(%rbp) , %edi			=== SALVANDO A VARIAVEL DA PILHA EM EDI (MESMA LÓGICA PARA ACESSAR A PILHA)
+
+	CASO VAR1 P
+
+	movl <p0>, %edi					=== SALVANDO O PARAMETRO EM EDI
+
+
+	CALL
+
+	call <fx>
+	movl %eax, -4(%rbp)				=== SALVAR O RETORNO DA FUNÇÃO NO V0 (MESMA LÓGICA PARA ACESSAR A PILHA)
+
+	---------------------------------------------*/
+
+	switch(var1){
+
+		case '$': {
+			printf("movl $%d, %%edi\n",idx1);
+			puts("");
+
+			break;
+		}
+		
+		case 'v': {
+			int access_pilha = -4*(idx1+1);
+			printf("movl %d(%%rbp), %%edi\n", access_pilha);
+			puts("");
+
+			break;
+		}
+
+		case 'p': {
+			printf("movl <p%d>, %%edi\n",idx1);
+			puts("");
+			
+			break;
+		}
+		default: return -1; //error
+	}
+
+	int access_pilha = -4*(idx0+1);
+	printf("call <fx>\n");
+	printf("movl %%eax, %d(%%rbp)\n",access_pilha);
+	puts("");
+
+	return 0;
+}
+
+int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
+
+	/* ----------------- CASO ZRET (RETORNO CONDICIONAL) ----------------
+
+	zret varpc varpc
+
+	var0 :== constante($) - variavel(V) - parametro(P)
+
+	CASO VAR0 $
+
+	movl $constante, %r10d				=== SALVANDO A CONSTANTE EM R10D PARA COMPARAR DEPOIS
+
+	CASO VAR0 V
+
+	movl -x(%rbp), %r10d				=== SALVANDO A VARIAVEL EM R10D PARA COMPARAR DEPOIS
+
+	CASO VAR0 P
+
+	movl <p0>, %r10d					=== SALVANDO O PARAMETRO EM R10D PARA COMPARAR DEPOIS
+
+
+	CONTINUAÇÃO ZRET
+
+
+	cmpl $0, %r10d
+	movl <retorno>, %eax
+	jne <fx>
+	leave
+	ret
+
+	---------------------------------------------------------------------*/
+
+	switch(var0){
+
+		case '$': {
+			printf("movl $%d, %%r10d\n", idx0);
+			puts("");
+
+			break;
+		}
+
+		case 'v': {
+			int access_pilha = -4*(idx0+1);
+			printf("movl %d(%%rbp), %%r10d\n", access_pilha);
+			puts("");
+
+			break;
+		}
+
+		case 'p': {
+			printf("movl <p%d>, %%r10d\n", idx0);
+			puts("");
+
+			break;
+		}
+		default: return -1; //error
+	}
+
+	printf("cmpl $0, %%r10d\n");
+	printf("movl <retorno>, %%eax\n");
+	printf("jne <fx>\n");
+	lbs_to_asm_end();
+
 
 	return 0;
 }
