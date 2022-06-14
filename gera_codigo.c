@@ -19,9 +19,9 @@ int lbs_to_asm_func();
 
 int lbs_to_asm_end();
 
-int lbs_to_asm_ret();
+int lbs_to_asm_ret(char var, int idx);
 
-int lbs_to_asm_zret();
+int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
 
 int lbs_to_asm_call();
 
@@ -39,7 +39,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	int c;				// Caracter do arquivo
 	int line_count = 1;	// Variavél que armazna linha atual
-	int ret;			// Variavél que armazena valor de retorno
 
 	if (code == NULL){
 		error("Vetor código nulo",0);
@@ -56,7 +55,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "unction%c", &c0) != 1){
 					error("Comando inválido", line_count);
 				}
-				printf("function\n");
+				//printf("function\n");
+				lbs_to_asm_func();
 				func_cont++;
 				break;
 			}
@@ -77,7 +77,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "et %c%d", &var0, &idx0) != 2){
 					error("Comando inválido", line_count);
 				}
-				printf("ret %c%d\n",var0 ,idx0);
+				//printf("ret %c%d\n",var0 ,idx0);
+				lbs_to_asm_ret(var0,idx0);
 				break;
 			}
 
@@ -137,7 +138,219 @@ static void error (const char *msg, int line) {
 /* ------------------ TRADUÇÃO LBS TO ASM --------------------- */
 
 int lbs_to_asm_end(){
+
+	/* ------- CASO END ------
+
+	leave			   === LEAVE 
+	ret				   === RETORNO
+	--------------------------*/
+
 	printf("leave\n");
 	printf("ret\n");
+	puts("");
+	return 0;
+}
+
+int lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
+
+	/* ------- CASO FUNCTION ------
+
+	pushq %rbp			  ===  INICIALIZANDO A PILHA
+	movq %rsp, %rbp		  ===  INICIALIZANDO A PILHA
+	subq $32, %rsp		  ===  ABRINDO OS 32 ESPAÇOS PARA ARMAZENAR OS 20 BYTES POSSÍVEIS
+	movl %edi, -28(%rbp)  ===  SALVANDO O VALOR DE EDI NA POSIÇÃO 28 PARA PODER ACESSAR ELE DEPOIS
+	--------------------------*/
+
+	printf("pushq %%rbp\n");
+	printf("movq %%rsp, %%rbp\n");
+	printf("subq $32, %%rsp\n");
+	printf("movl %%edi, -28(%%rbp)\n");
+	puts("");
+	return 0;
+
+}
+
+int lbs_to_asm_ret(char var0, int idx0){
+
+	/* ------- CASO RETORNO CONDICIONAL ------
+
+	POSSÍVEIS CASOS
+
+	var0 :== constante($) - variavel(V) - parametro(P)
+
+	CASO $ 					=== CONSTANTE
+
+	movl $constante, %eax 	=== SALVANDO A CONSTANTE NO VALOR DE RETORNO EAX
+
+	CASO V 					=== VARIAVEL
+
+	ACESSAR MEMORIA NA PILHA PARA VARIAVEL USAMOS -4 * (IDX0 + 1), POIS IDX0 ARMAZENA O NUMERO DA VARIAVEL, SEJA v0 OU v1 ...
+	movl -x(%rbp), %eax		=== COPIAMOS O VALOR DOS BYTES DA PILHA PARA EAX
+
+	CASO P					=== PARAMETRO
+
+	ACESSAR A MEMORIA PARA RECUPERAR EDI QUE FOI SALVO NA -28 DA PILHA
+	movl -28(%rbp), %eax	=== COPIAMOS O VALOR DE EDI PARA EAX
+
+	------------------------------------------*/
+
+	switch(var0){
+
+		case '$': {
+			printf("movl $%d, %%eax\n",idx0);
+			break;
+		}
+
+		case 'v': {
+			int access_pilha = (-4*(idx0+1));
+			printf("movl %d(%%rbp), %%eax\n",access_pilha);
+			puts("");
+			break;
+		}
+
+		case 'p': {
+			printf("movl -28(%%rbp), %%eax\n");
+			puts("");
+			break;
+		}
+		default: return -1;  //error
+
+
+	}
+	return 0;
+}
+
+int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2){
+
+	/* ------- CASO OPERAÇÃO -----------------
+
+	POSSIVEIS CASOS
+
+	var1 :== constante($) - variavel(V) - parametro(P)
+	op :== '+' - '-' - '*'
+	var2 :== constante($) - variavel(V) - parametro(P)
+
+	CASO VAR1 $
+
+	movl $constante, %r10d				=== SALVANDO A CONSTANTE EM R10D
+
+	CASO VAR1 V
+
+	movl -x(%rbp) , %r10d				=== SALVANDO -x(%rbp) EM R10D (MESMO CONCEITO PARA ACESSAR A PILHA)
+
+	CASO VAR1 P
+
+	movl <p0>, %r10d					=== SALVANDO PARAMETRO EM R10D
+
+	APLICAREMOS O MESMO CONCEITO PORÉM AGORA SOMANDO COM OS OPERADORES COM O VAR2
+
+	CASO OP +
+
+	addl var2, %r10d					=== SOMANDO O VAR2 EM R10D
+
+	CASO OP -
+
+	subl var2, %r10d					=== SUBTRAINDO O VAR2 EM R10D
+
+	CASO OP *
+
+	imull var2, %r10d					=== MULTIPLICANDO O VAR2 EM R10D
+	------------------------------------------*/
+
+	switch(var1){
+		
+		case '$': {
+
+			break;
+		}
+
+		case 'v': {
+
+			break;
+		}
+
+		case 'p': {
+
+			break;
+		}
+		default: return -1; //error
+	}
+
+	switch(op){
+
+		case '+': {
+
+			switch(var2){
+				
+				case '$': {
+
+					break;
+				}
+
+				case 'v': {
+
+					break;
+				}
+
+				case 'p': {
+
+					break;
+				}
+				default: return -1; //error
+			}
+
+			break;
+		}
+
+		case '-': {
+
+			switch(var2){
+				
+				case '$': {
+
+					break;
+				}
+
+				case 'v': {
+
+					break;
+				}
+
+				case 'p': {
+
+					break;
+				}
+				default: return -1; //error
+			}
+
+			break;
+		}
+
+		case '*': {
+
+			switch(var2){
+				
+				case '$': {
+
+					break;
+				}
+
+				case 'v': {
+
+					break;
+				}
+
+				case 'p': {
+
+					break;
+				}
+				default: return -1; //error
+			}
+
+			break;
+		}
+		default: return -1; //error
+	}
+
 	return 0;
 }

@@ -27,6 +27,6 @@ int main(void){
 	fclose(fp);
 	puts("");*/
 	unsigned char teste[2048];
-	funcp *entry;
+	funcp *entry = NULL;
 	gera_codigo(fp, teste, entry);
 }
