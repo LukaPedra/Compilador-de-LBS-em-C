@@ -1,9 +1,9 @@
 FUNCTION 									
-pushq %rbp		      ===    HEX - 55
-movq %rsp, %rbp		  ===    HEX - 48 89 e5
-subq $32, %rsp		  ===    HEX - 48 83 ec 20
-movl %edi, -28(%rbp)  ===  	 HEX - 89 7d e4
+pushq %rbp          ===     HEX - 55
+movq %rsp, %rbp     ===     HEX - 48 89 e5
+subq $32, %rsp      ===     HEX - 48 83 ec 20
+movl %edi, -28(%rbp)===     HEX - 89 7d e4
 
 END 
-leave                 ===    HEX - c9
-ret                   ===    HEX - c3
+leave               ===     HEX - c9
+ret                 ===     HEX - c3
