@@ -347,7 +347,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 		}
 
 		case 'p': {
-			printf("movl <p%d>, %%r10d\n", idx1);
+			printf("movl %%edi, %%r10d\n");
 
 			break;
 		}
@@ -374,7 +374,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 				}
 
 				case 'p': {
-					printf("addl <p%d>, %%r10d\n", idx2);
+					printf("addl %%edi, %%r10d\n");
 
 					break;
 				}
@@ -402,7 +402,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 				}
 
 				case 'p': {
-					printf("subl <p%d>, %%r10d\n", idx2);
+					printf("subl %%edi, %%r10d\n");
 
 					break;
 				}
@@ -430,7 +430,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 				}
 
 				case 'p': {
-					printf("imull <p%d>, %%r10d\n", idx2);
+					printf("imull %%edi, %%r10d\n");
 
 					break;
 				}
