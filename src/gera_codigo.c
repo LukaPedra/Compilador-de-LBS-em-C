@@ -31,6 +31,12 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 
 unsigned char func_count = 0;
 
+/* ---------------------- COMMANDOS ASSEMBLY EM HEXA ------------------ */
+static unsigned char code_func[11] = {0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x20, 0x89, 0x7d, 0xe4};
+static unsigned char code_end[2] = {0xc9, 0xc3};
+static unsigned char code_ret_var[];
+
+
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
 void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
@@ -232,6 +238,11 @@ int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARI
 	subq $32, %rsp		  ===  ABRINDO OS 32 ESPAÇOS PARA ARMAZENAR OS 20 BYTES POSSÍVEIS
 	movl %edi, -28(%rbp)  ===  SALVANDO O VALOR DE EDI NA POSIÇÃO 28 PARA PODER ACESSAR ELE DEPOIS
 
+	TRADUÇÃO PARA HEX:
+	0:   55                      push   %rbp
+    1:   48 89 e5                mov    %rsp,%rbp
+    4:   48 83 ec 20             sub    $0x20,%rsp
+    8:   89 7d e4                mov    %edi,-0x1c(%rbp)
 	--------------------------*/
 
 	printf("%d:\n",funcLabel);
