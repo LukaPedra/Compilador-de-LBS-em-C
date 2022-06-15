@@ -3,7 +3,7 @@
 
 int main(void){
 	FILE *fp;
-	fp = fopen("LBS constant.txt","r");
+	fp = fopen("LBS_factorial.txt","r");
 	unsigned char teste[2048];
 	funcp *entry = NULL;
 	gera_codigo(fp, teste, entry);
