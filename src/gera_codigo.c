@@ -21,7 +21,7 @@ int lbs_to_asm_end();
 
 int lbs_to_asm_ret(char var, int idx);
 
-int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
+int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1, int funcLabel);
 
 int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1);
 
@@ -123,7 +123,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				}
 
 				//printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
-				lbs_to_asm_zret(var0, var1, idx0, idx1);
+				lbs_to_asm_zret(var0, var1, idx0, idx1, func_count);
+				func_count++;
 				break;
 			}
 
@@ -497,7 +498,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 		}
 
 		case 'p': {
-			printf("movl <p%d>, %%edi\n",idx1);
+			//printf("movl <p%d>, %%edi\n",idx1);
 			puts("");
 			
 			break;
@@ -513,7 +514,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 	return 0;
 }
 
-int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
+int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1, int funcLabel){
 
 	/* ----------------- CASO ZRET (RETORNO CONDICIONAL) ----------------
 
@@ -572,9 +573,10 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 	}
 
 	printf("cmpl $0, %%r10d\n");
-	printf("movl <retorno>, %%eax\n");
-	printf("jne <fx>\n");
+	printf("movl %c%d, %%eax\n",var1,idx1);
+	printf("jne %d\n",func_count);
 	lbs_to_asm_end();
+	printf("%d:\n",funcLabel);
 
 
 	return 0;
