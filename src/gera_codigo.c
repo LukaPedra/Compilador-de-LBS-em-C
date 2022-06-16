@@ -48,9 +48,9 @@ static unsigned char code_end[2] = {0xc9, 0xc3};
 static unsigned char code_ret_cst[5] = {0xb8, 0x00, 0x00, 0x00, 0x00};
 static unsigned char code_ret_par[3] = {0x8b, 0x45, 0xe4};
 static unsigned char code_ret_var[3] = {0x8b, 0x45, 0x00};
-static unsigned char code_opr_cst[6] = {0x41, 0xba, 0x00, 0x00, 0x00, 0x00};
-static unsigned char code_opr_var[4] = {0x44, 0x8b, 0x55, 0x00};
-static unsigned char code_opr_par[4] = {0x44, 0x8b, 0x55, 0xe4};
+static unsigned char code_mov_cst_reg[6] = {0x41, 0xba, 0x00, 0x00, 0x00, 0x00};
+static unsigned char code_mov_var_reg[4] = {0x44, 0x8b, 0x55, 0x00};
+static unsigned char code_mov_par_reg[4] = {0x44, 0x8b, 0x55, 0xe4};
 static unsigned char code_opr_add_cst[7] = {0x41, 0x83, 0xc2, 0x00, 0x00, 0x00, 0x00};
 static unsigned char code_opr_add_var[4] = {0x44, 0x03, 0x55, 0x00};
 static unsigned char code_opr_add_par[4] = {0x44, 0x03, 0x55, 0xe4};
@@ -65,6 +65,8 @@ static unsigned char code_mov_cst_par[5] = {0xbf, 0x00, 0x00, 0x00, 0x00};
 static unsigned char code_mov_var_par[3] = {0x8b, 0x7d, 0x00};
 static unsigned char code_mov_par_par[3] = {0x8b, 0x7d, 0xe4};
 static unsigned char code_call[8] = {0xe8,0x00,0x00,0x00,0x00,0x89,0x45,0x00};
+static unsigned char code_zret_cmpl[4] = {0x41, 0x83, 0xfa, 0x00};
+static unsigned char code_zret_jne[2] = {0x75, 0x07};
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -404,8 +406,8 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			*	movl $(cst), %r10d	| 41 ba 00 00 00 00 
 			*						|		^^ = cst(4 bytes)
 			**********************************************/
-			num_lendian(code_opr_cst, 2, 4, idx1);
-			retorno = add_commands(code_opr_cst, sizeof(code_opr_cst));
+			num_lendian(code_mov_cst_reg, 2, 4, idx1);
+			retorno = add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
 			break;
 		}
 
@@ -418,8 +420,8 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			*	movl _(%rbp), %r10d	| 44 8b 55 00 
 			*		 ^access_pilha	|		   ^^ = access_pilha
 			**********************************************/
-			num_lendian(code_opr_var, 3, 1, access_pilha);
-			retorno = add_commands(code_opr_var, sizeof(code_opr_var));
+			num_lendian(code_mov_var_reg, 3, 1, access_pilha);
+			retorno = add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
 			break;
 		}
 
@@ -430,7 +432,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			/*Assembly code*********|hex***************
 			*movl -28(%rbp), %r10d	| 44 8b 55 e4
 			**********************************************/
-			retorno = add_commands(code_opr_par, sizeof(code_opr_par));
+			retorno = add_commands(code_mov_par_reg, sizeof(code_mov_par_reg));
 			break;
 		}
 		default: return -1; //error
@@ -703,7 +705,7 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 
 	CASO VAR0 P
 
-	movl <p0>, %r10d					=== SALVANDO O PARAMETRO EM R10D PARA COMPARAR DEPOIS
+	movl -28(%rbp), %r10d					=== SALVANDO O PARAMETRO EM R10D PARA COMPARAR DEPOIS
 
 
 	CONTINUAÇÃO ZRET
@@ -716,36 +718,56 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 	ret
 
 	---------------------------------------------------------------------*/
+	int retorno;
 
 	switch(var0){
 
 		case '$': {
-			printf("movl $%d, %%r10d\n", idx0);
-			puts("");
-
+			if(view_x86_sintax){
+				printf("movl $%d, %%r10d\n", idx0);
+				puts("");
+			}
+			num_lendian(code_mov_cst_reg, 2, 4, idx0);
+			retorno = add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
 			break;
 		}
 
 		case 'v': {
 			int access_pilha = -4*(idx0+1);
-			printf("movl %d(%%rbp), %%r10d\n", access_pilha);
-			puts("");
-
+			if(view_x86_sintax){
+				printf("movl %d(%%rbp), %%r10d\n", access_pilha);
+				puts("");
+			}
+			num_lendian(code_mov_var_reg, 3, 1, access_pilha);
+			retorno = add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
 			break;
 		}
 
 		case 'p': {
-			printf("movl %%edi, %%r10d\n");
-			puts("");
-
+			if(view_x86_sintax){
+				printf("movl -28(%%rbp), %%r10d\n");
+				puts("");
+			}
+			add_commands(code_mov_par_reg, sizeof(code_mov_par_reg));
 			break;
 		}
 		default: return -1; //error
 	}
+	if(view_x86_sintax){
+		printf("cmpl $0, %%r10d\n");
+		printf("movl %c%d, %%eax\n",var1,idx1);
+		printf("jne %d\n",func_count);
+	}
+	/*cmpl $0, %r10d*/
+	add_commands(code_zret_cmpl, sizeof(code_zret_cmpl));
 
-	printf("cmpl $0, %%r10d\n");
-	printf("movl %c%d, %%eax\n",var1,idx1);
-	printf("jne %d\n",func_count);
+	/*jne*/
+	add_commands(code_zret_jne, sizeof(code_zret_jne));
+
+	/*movl*/
+	lbs_to_asm_ret(var1, idx1);
+
+	/*end*/
 	lbs_to_asm_end();
 	//printf("%d:\n",funcLabel);
 
