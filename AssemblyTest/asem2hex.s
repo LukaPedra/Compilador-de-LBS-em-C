@@ -1,1 +1,1 @@
-addl %edi, %r10d
+movl -28(%rbp), %edi

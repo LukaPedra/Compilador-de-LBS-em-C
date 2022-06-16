@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define MAXLINE 50
+#define f_offset(f_id) (func_pos[f_id] - current_byte - 5) //COPIEI MUDAR
 
 /* ------------------------ DEBUG -----------------------*/
 int view_x86_sintax = 1;
@@ -60,6 +61,10 @@ static unsigned char code_opr_mult_cst[7] = {0x45, 0x6b, 0xd2, 0x00, 0x00, 0x00,
 static unsigned char code_opr_mult_var[5] = {0x44, 0x0f, 0xaf, 0x55, 0x00};
 static unsigned char code_opr_mult_par[5] = {0x44, 0x0f, 0xaf, 0x55, 0xe4};
 static unsigned char code_mov_reg_var[4] = {0x44, 0x89, 0x55, 0x00};
+static unsigned char code_mov_cst_par[5] = {0xbf, 0x00, 0x00, 0x00, 0x00};
+static unsigned char code_mov_var_par[3] = {0x8b, 0x7d, 0x00};
+static unsigned char code_mov_par_par[3] = {0x8b, 0x7d, 0xe4};
+static unsigned char code_call[8] = {0xe8,0x00,0x00,0x00,0x00,0x89,0x45,0x00};
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -620,38 +625,63 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 	movl %eax, -4(%rbp)				=== SALVAR O RETORNO DA FUNÇÃO NO V0 (MESMA LÓGICA PARA ACESSAR A PILHA)
 
 	---------------------------------------------*/
-
+	int retorno;
 	switch(var1){
 
 		case '$': {
-			printf("movl $%d, %%edi\n",idx1);
-			puts("");
-
+			if(view_x86_sintax){
+				printf("movl $%d, %%edi\n",idx1);
+				puts("");
+			}
+			/*Assembly code*************|hex***************
+			*movl $(cst), %%edi		| bf 00 00 00 00  
+			*						| 	 ^^=cst(4 bytes)
+			**********************************************/
+			num_lendian(code_mov_cst_par, 1, 4, idx1);
+			retorno = add_commands(code_mov_cst_par, sizeof(code_mov_cst_par));
 			break;
 		}
 		
 		case 'v': {
 			int access_pilha = -4*(idx1+1);
-			printf("movl %d(%%rbp), %%edi\n", access_pilha);
-			puts("");
-
+			if(view_x86_sintax){
+				printf("movl %d(%%rbp), %%edi\n", access_pilha);
+				puts("");
+			}
+			/*Assembly code*************|hex***************
+			*movl _(%rbp), %edi			| 8b 7d 00  
+			*	  ^access_pilha			| 	 	^^=access_pilha
+			**********************************************/
+			num_lendian(code_mov_var_par, 2, 1, access_pilha);
+			retorno = add_commands(code_mov_var_par, sizeof(code_mov_var_par));
 			break;
 		}
 
 		case 'p': {
-			//printf("movl <p%d>, %%edi\n",idx1);
-			puts("");
-			
+			if(view_x86_sintax){
+				printf("movl -28(%%rbp), %%edi\n",idx1);
+				puts("");
+			}
+			/*Assembly code*************|hex***************
+			*movl -28(%rbp), %edi		| 8b 7d e4 
+			**********************************************/
+			retorno = add_commands(code_mov_par_par, sizeof(code_mov_par_par));
 			break;
 		}
 		default: return -1; //error
 	}
-
+	if(retorno){
+		return 1;
+	}
 	int access_pilha = -4*(idx0+1);
-	printf("call %d\n",fx);
-	printf("movl %%eax, %d(%%rbp)\n",access_pilha);
-	puts("");
-
+	if(view_x86_sintax){
+		printf("call %d\n",fx);
+		printf("movl %%eax, %d(%%rbp)\n",access_pilha);
+		puts("");
+	}
+	num_lendian(code_call, 1, 4, f_offset(fx));
+	num_lendian(code_call, 7, 1, access_pilha);
+	return add_commands(code_call, sizeof(code_call));
 	return 0;
 }
 
