@@ -661,7 +661,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 
 		case 'p': {
 			if(view_x86_sintax){
-				printf("movl -28(%%rbp), %%edi\n",idx1);
+				printf("movl -28(%%rbp), %%edi\n");
 				puts("");
 			}
 			/*Assembly code*************|hex***************
