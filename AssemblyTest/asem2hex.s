@@ -1,2 +1,1 @@
-leave
-ret
+movl $0, %eax

@@ -3,6 +3,9 @@
 
 #define MAXLINE 50
 
+/* ------------------------ DEBUG -----------------------*/
+int view_x86_sintax = 1;
+
 /* ------------------------ PROTOTIPOS -----------------------
                                                            
     Funções protipos que serão utilizadas durante o código   
@@ -27,14 +30,22 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1);
 
 int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2);
 
+void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number );
+
+int add_commands(unsigned char *commands, size_t bytes);
+
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
 unsigned char func_count = 0;
+unsigned int current_byte = 0;
+unsigned char *p_code = NULL;
+unsigned int func_pos[MAXLINE] = {};
 
 /* ---------------------- COMMANDOS ASSEMBLY EM HEXA ------------------ */
 static unsigned char code_func[11] = {0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x20, 0x89, 0x7d, 0xe4};
 static unsigned char code_end[2] = {0xc9, 0xc3};
-static unsigned char code_ret_var[];
+static unsigned char code_ret_cst[5] = {0xb8, 0x00, 0x00, 0x00, 0x00};
+static unsigned char code_ret_par[3] = {0x8b, 0x45, 0xe4};
 
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
@@ -43,13 +54,18 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	int c;				// CARACTER DO ARQUIVO
 	int line_count = 1;	// VARIAVEL QUE ARMAZENA LINHA ATUAL
+	current_byte = 0;	//QUAL É O BYTE ATUAL DO ARRAY DO CODE
 
 	if (code == NULL){
 		error("Vetor código nulo",0);
 	}
 
 	func_count = 0;
-
+	*code = NULL;
+	p_code = (unsigned char *)malloc(1024);
+	if(p_code == NULL) {
+		error("Erro ao alocar memória",0);
+	}
 	while((c = fgetc(f)) != EOF){
 
 		switch(c){
@@ -203,6 +219,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		fscanf(f, " ");
 
 	}
+	*code = (void *)p_code;
+
 	return;
 }
 
@@ -218,15 +236,21 @@ int lbs_to_asm_end(){
 
 	/* ------- CASO END ------
 
-	leave			   === LEAVE 
-	ret				   === RETORNO
+	leave			   === LEAVE	0xc9
+	ret				   === RETORNO	0xc3
+	TRADUÇÃO PARA HEX:
+	0:   c9                      leaveq 
+	1:   c3                      retq  
 
 	--------------------------*/
+	/*debug assembly code */
+	if(view_x86_sintax == 1){
+		printf("leave\n");
+		printf("ret\n");
+		puts("");
+	}
 
-	printf("leave\n");
-	printf("ret\n");
-	puts("");
-	return 0;
+	return add_commands(code_end, sizeof(code_end));
 }
 
 int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
@@ -244,15 +268,17 @@ int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARI
     4:   48 83 ec 20             sub    $0x20,%rsp
     8:   89 7d e4                mov    %edi,-0x1c(%rbp)
 	--------------------------*/
-
-	printf("%d:\n",funcLabel);
-	printf("pushq %%rbp\n");
-	printf("movq %%rsp, %%rbp\n");
-	printf("subq $32, %%rsp\n");
-	printf("movl %%edi, -28(%%rbp)\n");
-	puts("");
-	return 0;
-
+	if(view_x86_sintax == 1){
+		printf("%d:\n",funcLabel);
+		printf("pushq %%rbp\n");
+		printf("movq %%rsp, %%rbp\n");
+		printf("subq $32, %%rsp\n");
+		printf("movl %%edi, -28(%%rbp)\n");
+		puts("");
+	}
+	func_pos[func_count] = current_byte;
+	func_count++;
+	return add_commands(code_func, sizeof(code_func));
 }
 
 int lbs_to_asm_ret(char var0, int idx0){
@@ -282,7 +308,11 @@ int lbs_to_asm_ret(char var0, int idx0){
 	switch(var0){
 
 		case '$': {
-			printf("movl $%d, %%eax\n",idx0);
+			if(view_x86_sintax){
+				printf("movl $%d, %%eax\n",idx0);
+			}
+			num_lendian(code_ret_cst, 1, 4, idx0);
+			return add_commands(code_ret_cst, sizeof(code_ret_cst))
 			break;
 		}
 
@@ -591,4 +621,37 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1, int funcLabel){
 
 
 	return 0;
+}
+
+
+//Trocar
+void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number ) {
+
+	int i = 0;
+	char byte_nulo;
+
+	if( number < 0 ) {
+		number = ~(-(number+1)); /* inv(-(x+1)) */
+		byte_nulo = 0xff;
+	} /* if */
+	else {
+		byte_nulo = 0x00;
+	} /* else */
+
+	while( bytes-- ) {
+		char num_byte = number & 0xff;
+		commands[pos+i] = number ? num_byte : byte_nulo;
+		number = number >> 8;
+		i++;
+	} /* while */
+	
+} /* fim da função num_lendian */
+
+int add_commands(unsigned char *commands, size_t bytes){
+	for (int i = 0; i < bytes; i++) {
+		p_code[current_byte] = commands[i];
+		current_byte++;
+	}
+	return 0;
+	
 }
