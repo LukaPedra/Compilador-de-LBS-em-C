@@ -46,7 +46,13 @@ static unsigned char code_func[11] = {0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 
 static unsigned char code_end[2] = {0xc9, 0xc3};
 static unsigned char code_ret_cst[5] = {0xb8, 0x00, 0x00, 0x00, 0x00};
 static unsigned char code_ret_par[3] = {0x8b, 0x45, 0xe4};
-
+static unsigned char code_ret_var[3] = {0x8b, 0x45, 0x00};
+static unsigned char code_opr_cst[6] = {0x41, 0xba, 0x00, 0x00, 0x00, 0x00};
+static unsigned char code_opr_var[4] = {0x44, 0x8b, 0x55, 0x00};
+static unsigned char code_opr_par[3] = {0x41, 0x89, 0xfa};
+static unsigned char code_opr_add_cst[4] = {0x41, 0x83, 0xc2, 0x00};
+static unsigned char code_opr_add_var[4] = {0x44, 0x03, 0x55, 0x00};
+static unsigned char code_opr_add_par[3] = {0x41, 0x01, 0xfa};
 
 /* -------------------- Função principal GERA_CODIGO ---------------------- */
 
@@ -312,21 +318,25 @@ int lbs_to_asm_ret(char var0, int idx0){
 				printf("movl $%d, %%eax\n",idx0);
 			}
 			num_lendian(code_ret_cst, 1, 4, idx0);
-			return add_commands(code_ret_cst, sizeof(code_ret_cst))
-			break;
+			return add_commands(code_ret_cst, sizeof(code_ret_cst));
 		}
 
 		case 'v': {
 			int access_pilha = (-4*(idx0+1));
-			printf("movl %d(%%rbp), %%eax\n",access_pilha);
-			puts("");
-			break;
+			if(view_x86_sintax){
+				printf("movl %d(%%rbp), %%eax\n",access_pilha);
+				puts("");
+			}
+			num_lendian(code_ret_var, 2, 1, access_pilha);
+			return add_commands(code_ret_var, sizeof(code_ret_var));
 		}
 
 		case 'p': {
-			printf("movl -28(%%rbp), %%eax\n");
-			puts("");
-			break;
+			if(view_x86_sintax){
+				printf("movl -28(%%rbp), %%eax\n");
+				puts("");
+			}
+			return add_commands(code_ret_par, sizeof(code_ret_par));
 		}
 		default: return -1;  //error
 
@@ -372,25 +382,33 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 	imull var2, %r10d					=== MULTIPLICANDO O VAR2 EM R10D
 
 	------------------------------------------*/
-
+	int retorno;
 	switch(var1){
 		
 		case '$': {
-			printf("movl $%d, %%r10d\n", idx1);
-
+			if(view_x86_sintax){
+				printf("movl $%d, %%r10d\n", idx1);
+			}
+			num_lendian(code_opr_cst, 2, 4, idx1);
+			retorno = add_commands(code_opr_cst, sizeof(code_opr_cst));
 			break;
 		}
 
 		case 'v': {
 			int access_pilha = -4*(idx1+1);
-			printf("movl %d(%%rbp), %%r10d\n", access_pilha);
-
+			if(view_x86_sintax){
+				printf("movl %d(%%rbp), %%r10d\n", access_pilha);
+			}
+			num_lendian(code_opr_var, 3, 1, access_pilha);
+			retorno = add_commands(code_opr_var, sizeof(code_opr_var));
 			break;
 		}
 
 		case 'p': {
-			printf("movl %%edi, %%r10d\n");
-
+			if(view_x86_sintax){
+				printf("movl %%edi, %%r10d\n");
+			}
+			retorno = add_commands(code_opr_par, sizeof(code_opr_par));
 			break;
 		}
 		default: return -1; //error
@@ -403,21 +421,29 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			switch(var2){
 				
 				case '$': {
-					printf("addl $%d, %%r10d\n", idx2);
-
+					if(view_x86_sintax){
+						printf("addl $%d, %%r10d\n", idx2);
+					}
+					num_lendian(code_opr_add_cst, 3, 1, idx2);
+					retorno = add_commands(code_opr_add_cst, sizeof(code_opr_add_cst));
 					break;
 				}
 
 				case 'v': {
 					int access_pilha = -4*(idx2+1);
-					printf("addl %d(%%rbp), %%r10d\n", access_pilha);
-
+					if(view_x86_sintax){
+						printf("addl %d(%%rbp), %%r10d\n", access_pilha);
+					}
+					num_lendian(code_opr_add_var, 3, 1, access_pilha);
+					retorno = add_commands(code_opr_add_var, sizeof(code_opr_add_var));
 					break;
 				}
 
 				case 'p': {
-					printf("addl %%edi, %%r10d\n");
-
+					if(view_x86_sintax){
+						printf("addl %%edi, %%r10d\n");
+					}
+					retorno = add_commands(code_opr_add_par, sizeof(code_opr_add_par));
 					break;
 				}
 				default: return -1; //error

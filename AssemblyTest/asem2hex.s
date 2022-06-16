@@ -1,1 +1,1 @@
-movl $0, %eax
+addl %edi, %r10d
