@@ -15,22 +15,39 @@ O objetivo do trabalho é implementar, na linguagem C, uma função (**`gera_cod
 A sintaxe da linguagem LBS pode ser definida formalmente como abaixo. Note que as cadeias entre ' ' são símbolos terminais da linguagem: os caracteres ' não aparecem nos comandos LBS.
 
 pgm	::=	func | func pgm
+
 func	::=	header cmds endf
+
 header	::=	'function\n'
+
 endf	::=	'end\n'
+
 cmds	::=	cmd'\n' | cmd '\n' cmds
+
 cmd	::=	att | ret | zret
+
 att	::=	var '=' expr
+
 expr	::=	oper | call
+
 oper	::=	varpc op varpc
+
 call	::=	'call' num varpc
+
 ret	::=	'ret' varpc
+
 zret	::=	'zret' varpc varpc
+
 var	::=	'v' num
+
 varpc	::=	var | 'p0' | '$' snum
+
 op	::=	'+' | '-' | '*'
+
 num	::=	digito | digito num
+
 snum	::=	[-] num
+
 digito	::=	0' | '1' | '2' | '3' | '4' | '5' | '6' | '7'| '8' | '9'
 
 
