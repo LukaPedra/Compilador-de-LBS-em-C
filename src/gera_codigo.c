@@ -4,9 +4,6 @@
 #define MAXLINE 50
 #define f_offset(f_id) (func_pos[f_id] - current_byte - 5) //COPIEI MUDAR
 
-/* ------------------------ DEBUG -----------------------*/
-int view_x86_sintax = 1;
-
 /* ------------------------ PROTOTIPOS -----------------------
                                                            
     Funções protipos que serão utilizadas durante o código   
@@ -37,6 +34,7 @@ void add_commands(unsigned char *commands, size_t bytes);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
+int view_x86_sintax = 1; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
 unsigned char func_count = 0;
 unsigned int current_byte = 0;
 unsigned char *p_code = NULL;
