@@ -19,21 +19,21 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry);
 
 static void error (const char *msg, int line);
 
-int lbs_to_asm_func(int funcLabel);
+void lbs_to_asm_func(int funcLabel);
 
-int lbs_to_asm_end();
+void lbs_to_asm_end();
 
-int lbs_to_asm_ret(char var, int idx);
+void lbs_to_asm_ret(char var, int idx);
 
-int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
+void lbs_to_asm_zret(char var0, char var1, int idx0, int idx1);
 
-int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1);
+void lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1);
 
-int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2);
+void lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2);
 
 void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number );
 
-int add_commands(unsigned char *commands, size_t bytes);
+void add_commands(unsigned char *commands, size_t bytes);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
@@ -43,6 +43,7 @@ unsigned char *p_code = NULL;
 unsigned int func_pos[MAXLINE] = {};
 
 /* ---------------------- COMMANDOS ASSEMBLY EM HEXA ------------------ */
+
 static unsigned char code_func[11] = {0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x20, 0x89, 0x7d, 0xe4};
 static unsigned char code_end[2] = {0xc9, 0xc3};
 static unsigned char code_ret_cst[5] = {0xb8, 0x00, 0x00, 0x00, 0x00};
@@ -81,11 +82,13 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 
 	func_count = 0;
-	*code = NULL;
+	code = NULL;
 	p_code = (unsigned char *)malloc(1024);
+
 	if(p_code == NULL) {
 		error("Erro ao alocar memória",0);
 	}
+
 	while((c = fgetc(f)) != EOF){
 
 		switch(c){
@@ -238,7 +241,8 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		fscanf(f, " ");
 
 	}
-	*code = (void *)p_code;
+
+	code = (void*) p_code;
 
 	return;
 }
@@ -251,7 +255,7 @@ static void error (const char *msg, int line) {
 
 /* ------------------ TRADUÇÃO LBS TO ASM --------------------- */
 
-int lbs_to_asm_end(){
+void lbs_to_asm_end(){
 
 	/* ------- CASO END ------
 
@@ -269,10 +273,10 @@ int lbs_to_asm_end(){
 		puts("");
 	}
 
-	return add_commands(code_end, sizeof(code_end));
+	add_commands(code_end, sizeof(code_end));
 }
 
-int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
+void lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
 
 	/* ------- CASO FUNCTION ------
 
@@ -297,10 +301,10 @@ int lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARI
 	}
 	func_pos[func_count] = current_byte;
 	func_count++;
-	return add_commands(code_func, sizeof(code_func));
+	add_commands(code_func, sizeof(code_func));
 }
 
-int lbs_to_asm_ret(char var0, int idx0){
+void lbs_to_asm_ret(char var0, int idx0){
 
 	/* ------- CASO RETORNO INCONDICIONAL ------
 
@@ -331,7 +335,8 @@ int lbs_to_asm_ret(char var0, int idx0){
 				printf("movl $%d, %%eax\n",idx0);
 			}
 			num_lendian(code_ret_cst, 1, 4, idx0);
-			return add_commands(code_ret_cst, sizeof(code_ret_cst));
+			add_commands(code_ret_cst, sizeof(code_ret_cst));
+			break;
 		}
 
 		case 'v': {
@@ -341,7 +346,8 @@ int lbs_to_asm_ret(char var0, int idx0){
 				puts("");
 			}
 			num_lendian(code_ret_var, 2, 1, access_pilha);
-			return add_commands(code_ret_var, sizeof(code_ret_var));
+			add_commands(code_ret_var, sizeof(code_ret_var));
+			break;
 		}
 
 		case 'p': {
@@ -349,16 +355,16 @@ int lbs_to_asm_ret(char var0, int idx0){
 				printf("movl -28(%%rbp), %%eax\n");
 				puts("");
 			}
-			return add_commands(code_ret_par, sizeof(code_ret_par));
+			add_commands(code_ret_par, sizeof(code_ret_par));
+			break;
 		}
-		default: return -1;  //error
+		default: printf("Erro na leitura");  //error
 
 
 	}
-	return 0;
 }
 
-int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2){
+void lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2, int idx2){
 
 	/* ------- CASO OPERAÇÃO -----------------
 
@@ -395,7 +401,6 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 	imull var2, %r10d					=== MULTIPLICANDO O VAR2 EM R10D
 
 	------------------------------------------*/
-	int retorno;
 	switch(var1){
 		
 		case '$': {
@@ -407,7 +412,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			*						|		^^ = cst(4 bytes)
 			**********************************************/
 			num_lendian(code_mov_cst_reg, 2, 4, idx1);
-			retorno = add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
+			add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
 			break;
 		}
 
@@ -421,7 +426,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			*		 ^access_pilha	|		   ^^ = access_pilha
 			**********************************************/
 			num_lendian(code_mov_var_reg, 3, 1, access_pilha);
-			retorno = add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
+			add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
 			break;
 		}
 
@@ -432,10 +437,10 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 			/*Assembly code*********|hex***************
 			*movl -28(%rbp), %r10d	| 44 8b 55 e4
 			**********************************************/
-			retorno = add_commands(code_mov_par_reg, sizeof(code_mov_par_reg));
+			add_commands(code_mov_par_reg, sizeof(code_mov_par_reg));
 			break;
 		}
-		default: return -1; //error
+		default: printf("Erro na leitura");  //error
 	}
 
 	switch(op){
@@ -453,7 +458,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*						|		   ^^ = cst(4 bytes)
 					**********************************************/
 					num_lendian(code_opr_add_cst, 3, 4, idx2);
-					retorno = add_commands(code_opr_add_cst, sizeof(code_opr_add_cst));
+					add_commands(code_opr_add_cst, sizeof(code_opr_add_cst));
 					break;
 				}
 
@@ -467,7 +472,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*		 ^acess_pilha	|		   ^^ = acess_pilha
 					**********************************************/
 					num_lendian(code_opr_add_var, 3, 1, access_pilha);
-					retorno = add_commands(code_opr_add_var, sizeof(code_opr_add_var));
+					add_commands(code_opr_add_var, sizeof(code_opr_add_var));
 					break;
 				}
 
@@ -478,10 +483,10 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					/*Assembly code*********|hex***************
 					* addl -28(%rbp), %r10d	| 44 03 55 e4 
 					**********************************************/
-					retorno = add_commands(code_opr_add_par, sizeof(code_opr_add_par));
+					add_commands(code_opr_add_par, sizeof(code_opr_add_par));
 					break;
 				}
-				default: return -1; //error
+				default: printf("Erro na leitura");  //error
 			}
 
 			break;
@@ -500,7 +505,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*						|		   ^^ = cst(4 bytes)
 					**********************************************/
 					num_lendian(code_opr_sub_cst, 3, 4, idx2);
-					retorno = add_commands(code_opr_sub_cst, sizeof(code_opr_sub_cst));
+					add_commands(code_opr_sub_cst, sizeof(code_opr_sub_cst));
 					break;
 				}
 
@@ -514,7 +519,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*		 ^acess_pilha	|		   ^^ = access_pilha
 					**********************************************/
 					num_lendian(code_opr_sub_var, 3, 1, access_pilha);
-					retorno = add_commands(code_opr_sub_var, sizeof(code_opr_sub_var));
+					add_commands(code_opr_sub_var, sizeof(code_opr_sub_var));
 					break;
 				}
 
@@ -525,10 +530,10 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					/*Assembly code*********|hex***************
 					*subl -28(%rbp), %r10d	| 44 2b 55 e4
 					**********************************************/
-					retorno = add_commands(code_opr_sub_par, sizeof(code_opr_sub_par));
+					add_commands(code_opr_sub_par, sizeof(code_opr_sub_par));
 					break;
 				}
-				default: return -1; //error
+				default: printf("Erro na leitura");  //error
 			}
 
 			break;
@@ -547,7 +552,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*						|		   ^^ = cst (4 bytes)
 					**********************************************/
 					num_lendian(code_opr_mult_cst, 3, 4, idx2);
-					retorno = add_commands(code_opr_mult_cst, sizeof(code_opr_mult_cst));
+					add_commands(code_opr_mult_cst, sizeof(code_opr_mult_cst));
 					break;
 				}
 
@@ -561,7 +566,7 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					*		  ^=acess_pilha	|		   	  ^^ = access_pilha
 					**********************************************/
 					num_lendian(code_opr_mult_var, 4, 1, access_pilha);
-					retorno = add_commands(code_opr_mult_var, sizeof(code_opr_mult_var));
+					add_commands(code_opr_mult_var, sizeof(code_opr_mult_var));
 					break;
 				}
 
@@ -572,18 +577,15 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 					/*Assembly code*********|hex***************
 					*imull -28(%rbp),%r10d	| 44 0f af 55 e4
 					**********************************************/
-					retorno = add_commands(code_opr_mult_par, sizeof(code_opr_mult_par));
+					add_commands(code_opr_mult_par, sizeof(code_opr_mult_par));
 					break;
 				}
-				default: return -1; //error
+				default: printf("Erro na leitura");  //error
 			}
 
 			break;
 		}
-		default: return -1; //error
-	}
-	if(retorno){
-		return 1;
+		default: printf("Erro na leitura");  //error
 	}
 	int access_pilha = -4*(idx0+1);
 	if(view_x86_sintax){
@@ -595,10 +597,10 @@ int lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2,
 	*			 ^access_pilha	| 		   ^^=access_pilha
 	**********************************************/
 	num_lendian(code_mov_reg_var, 3, 1, access_pilha);
-	return add_commands(code_mov_reg_var, sizeof(code_mov_reg_var));
+	add_commands(code_mov_reg_var, sizeof(code_mov_reg_var));
 }
 
-int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
+void lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 
 	/* ----------------- CASO CALL ----------------
 
@@ -627,7 +629,6 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 	movl %eax, -4(%rbp)				=== SALVAR O RETORNO DA FUNÇÃO NO V0 (MESMA LÓGICA PARA ACESSAR A PILHA)
 
 	---------------------------------------------*/
-	int retorno;
 	switch(var1){
 
 		case '$': {
@@ -640,7 +641,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 			*						| 	 ^^=cst(4 bytes)
 			**********************************************/
 			num_lendian(code_mov_cst_par, 1, 4, idx1);
-			retorno = add_commands(code_mov_cst_par, sizeof(code_mov_cst_par));
+			add_commands(code_mov_cst_par, sizeof(code_mov_cst_par));
 			break;
 		}
 		
@@ -655,7 +656,7 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 			*	  ^access_pilha			| 	 	^^=access_pilha
 			**********************************************/
 			num_lendian(code_mov_var_par, 2, 1, access_pilha);
-			retorno = add_commands(code_mov_var_par, sizeof(code_mov_var_par));
+			add_commands(code_mov_var_par, sizeof(code_mov_var_par));
 			break;
 		}
 
@@ -667,13 +668,10 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 			/*Assembly code*************|hex***************
 			*movl -28(%rbp), %edi		| 8b 7d e4 
 			**********************************************/
-			retorno = add_commands(code_mov_par_par, sizeof(code_mov_par_par));
+			add_commands(code_mov_par_par, sizeof(code_mov_par_par));
 			break;
 		}
-		default: return -1; //error
-	}
-	if(retorno){
-		return 1;
+		default: printf("Erro na leitura");  //error
 	}
 	int access_pilha = -4*(idx0+1);
 	if(view_x86_sintax){
@@ -683,11 +681,10 @@ int lbs_to_asm_call(char var0, int idx0, int fx, char var1, int idx1){
 	}
 	num_lendian(code_call, 1, 4, f_offset(fx));
 	num_lendian(code_call, 7, 1, access_pilha);
-	return add_commands(code_call, sizeof(code_call));
-	return 0;
+	add_commands(code_call, sizeof(code_call));
 }
 
-int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
+void lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 
 	/* ----------------- CASO ZRET (RETORNO CONDICIONAL) ----------------
 
@@ -718,7 +715,6 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 	ret
 
 	---------------------------------------------------------------------*/
-	int retorno;
 
 	switch(var0){
 
@@ -728,7 +724,7 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 				puts("");
 			}
 			num_lendian(code_mov_cst_reg, 2, 4, idx0);
-			retorno = add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
+			add_commands(code_mov_cst_reg, sizeof(code_mov_cst_reg));
 			break;
 		}
 
@@ -739,7 +735,7 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 				puts("");
 			}
 			num_lendian(code_mov_var_reg, 3, 1, access_pilha);
-			retorno = add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
+			add_commands(code_mov_var_reg, sizeof(code_mov_var_reg));
 			break;
 		}
 
@@ -751,7 +747,7 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 			add_commands(code_mov_par_reg, sizeof(code_mov_par_reg));
 			break;
 		}
-		default: return -1; //error
+		default: printf("Erro na leitura");  //error
 	}
 	if(view_x86_sintax){
 		printf("cmpl $0, %%r10d\n");
@@ -770,9 +766,6 @@ int lbs_to_asm_zret(char var0, char var1, int idx0, int idx1){
 	/*end*/
 	lbs_to_asm_end();
 	//printf("%d:\n",funcLabel);
-
-
-	return 0;
 }
 
 
@@ -799,11 +792,9 @@ void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number
 	
 } /* fim da função num_lendian */
 
-int add_commands(unsigned char *commands, size_t bytes){
+void add_commands(unsigned char *commands, size_t bytes){
 	for (int i = 0; i < bytes; i++) {
 		p_code[current_byte] = commands[i];
 		current_byte++;
 	}
-	return 0;
-	
 }
