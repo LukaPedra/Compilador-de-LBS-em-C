@@ -81,7 +81,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	func_count = 0;
 	code = NULL;
-	p_code = (unsigned char *)malloc(1024);
+	p_code = (unsigned char *)malloc(1600); // 1600 pois cada o código máximo tem 50 linhas, e o máximo que podemos ter é 32 bits, então 32 x 50 = 1600.
 
 	if(p_code == NULL) {
 		error("Erro ao alocar memória",0);
