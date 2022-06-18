@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAXLINE 50
+#define LINHAS 50
 #define f_offset(f_id) (func_pos[f_id] - current_byte - 5) //COPIEI MUDAR
 
 /* ------------------------ PROTOTIPOS -----------------------
@@ -34,11 +34,11 @@ void add_commands(unsigned char *commands, size_t bytes);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
-int view_x86_sintax = 1; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
+int view_x86_sintax = 0; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
 unsigned char func_count = 0;
 unsigned int current_byte = 0;
 unsigned char *p_code = NULL;
-unsigned int func_pos[MAXLINE] = {};
+unsigned int func_pos[LINHAS] = {};
 
 /* ---------------------- COMMANDOS ASSEMBLY EM HEXA ------------------ */
 
@@ -81,7 +81,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	func_count = 0;
 	code = NULL;
-	p_code = (unsigned char *)malloc(1600); // 1600 pois cada o código máximo tem 50 linhas, e o máximo que podemos ter é 32 bits, então 32 x 50 = 1600.
+	p_code = (unsigned char *)malloc(1024); // 1600 pois cada o código máximo tem 50 linhas, e o máximo que podemos ter é 32 bits, então 32 x 50 = 1600.
 
 	if(p_code == NULL) {
 		error("Erro ao alocar memória",0);
@@ -107,7 +107,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 				//printf("function\n");
 				lbs_to_asm_func(func_count);
-				func_count++;
 				break;
 			}
 
@@ -242,7 +241,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	code = (void*) p_code;
 
-	return;
+	*entry = (funcp) (p_code + func_pos[func_count - 1]);
 }
 
 static void error (const char *msg, int line) {

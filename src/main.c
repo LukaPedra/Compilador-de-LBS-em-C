@@ -1,10 +1,19 @@
 #include <stdio.h>
 #include "gera_codigo.h"
 
-int main(void){
+int main(int argc, char *argv[]){
 	FILE *fp;
-	fp = fopen("LBS_factorial.txt","r");
-	unsigned char teste[2048];
-	funcp *entry = NULL;
-	gera_codigo(fp, teste, entry);
+	unsigned char code[300];
+	funcp funcLBS;
+	int res;
+
+	fp = fopen("LBS_return.txt","r");
+
+	gera_codigo(fp,code,&funcLBS);
+	if (funcLBS == NULL){
+		printf("Erro na geração\n");
+	}
+
+	res = (*funcLBS)(3);
+	printf("%d", res);
 }
