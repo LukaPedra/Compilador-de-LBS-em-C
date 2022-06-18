@@ -16,4 +16,5 @@ int main(int argc, char *argv[]){
 
 	res = (*funcLBS)(3);
 	printf("%d", res);
+	return 0;
 }
