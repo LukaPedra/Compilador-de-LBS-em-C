@@ -38,7 +38,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry);
 
 static void error (const char *msg, int line);
 
-void lbs_to_asm_func(int funcLabel);
+void lbs_to_asm_func(); // check
 
 void lbs_to_asm_end();
 
@@ -57,10 +57,6 @@ void add_commands(unsigned char *commands, size_t bytes);
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
 int view_x86_sintax = 0; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
-unsigned char func_count = 0;
-unsigned int current_byte = 0;
-unsigned char *p_code = NULL;
-unsigned int func_pos[LINHAS] = {};
 
 /* ---------------------- COMMANDOS ASSEMBLY EM HEXA ------------------ */
 
@@ -116,9 +112,16 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 				if (fscanf(f, "unction%c", &c0) != 1){
 					error("Comando inválido", line_count);
 				}
+                
 
-				//printf("function\n");
-				lbs_to_asm_func(func_count);
+                func_pos[func_count] = current_byte;
+	            func_count++;
+				lbs_to_asm_func();
+                for (int i = 0; i < SIZE_FUNCTION; i++) {
+		            code[current_byte] = code_func[i];
+		            current_byte++;
+	                }
+                
 				break;
 			}
 
@@ -136,8 +139,12 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 
-				//printf("end\n");
 				lbs_to_asm_end();
+
+                for (int i = 0; i < SIZE_END; i++) {
+		            code[current_byte] = code_end[i];
+		            current_byte++;
+	            }   
 				break;
 			}
 
@@ -156,7 +163,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 
-				//printf("ret %c%d\n",var0 ,idx0);
+
 				lbs_to_asm_ret(var0,idx0);
 				break;
 			}
@@ -176,7 +183,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 					error("Comando inválido", line_count);
 				}
 
-				//printf("zret %c%d %c%d\n",var0 ,idx0, var1, idx1);
+
 				lbs_to_asm_zret(var0, var1, idx0, idx1);
 				break;
 			}
@@ -217,7 +224,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 						error("Comando inválido", line_count);
 					}
 
-					//printf("%c%d = call %d %c%d\n",var0 ,idx0, fx, var1, idx1);
 					lbs_to_asm_call(var0, idx0, fx, var1, idx1);
 
 				}
@@ -237,7 +243,6 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 						error("Comando inválido", line_count);
 					}
 
-					//printf("%c%d = %c%d %c %c%d\n",var0, idx0, var1, idx1, op, var2, idx2);
 					lbs_to_asm_opr(var0, idx0, var1, idx1, op, var2, idx2);
 
 				}
@@ -251,9 +256,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	}
 
-	code = (void*) p_code;
-
-	*entry = (funcp) (p_code + func_pos[func_count - 1]);
+	*entry = (funcp) (code + func_pos[func_count - 1]);
 }
 
 static void error (const char *msg, int line) {
@@ -281,11 +284,9 @@ void lbs_to_asm_end(){
 		printf("ret\n");
 		puts("");
 	}
-
-	add_commands(code_end, sizeof(code_end));
 }
 
-void lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
+void lbs_to_asm_func(){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VARIAVEIS, PRECISAMOS DE 20 BYTES, PARA COMPLETAR O MULTIPLO DE 16, ALOCAMOS 32 NA PILHA
 
 	/* ------- CASO FUNCTION ------
 
@@ -301,16 +302,13 @@ void lbs_to_asm_func(int funcLabel){ // COMO A LINGUAGEM RECEBE NO MÁXIMO 5 VAR
     8:   89 7d e4                mov    %edi,-0x1c(%rbp)
 	--------------------------*/
 	if(view_x86_sintax == 1){
-		printf("%d:\n",funcLabel);
+		printf("label:\n");
 		printf("pushq %%rbp\n");
 		printf("movq %%rsp, %%rbp\n");
 		printf("subq $32, %%rsp\n");
 		printf("movl %%edi, -28(%%rbp)\n");
 		puts("");
 	}
-	func_pos[func_count] = current_byte;
-	func_count++;
-	add_commands(code_func, sizeof(code_func));
 }
 
 void lbs_to_asm_ret(char var0, int idx0){
@@ -801,9 +799,9 @@ void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number
 	
 } /* fim da função num_lendian */
 
-void add_commands(unsigned char *commands, size_t bytes){
+void add_commands(unsigned char *commands, size_t bytes, unsigned char code[]){
 	for (int i = 0; i < bytes; i++) {
-		p_code[current_byte] = commands[i];
+		code[current_byte] = commands[i];
 		current_byte++;
 	}
 }
