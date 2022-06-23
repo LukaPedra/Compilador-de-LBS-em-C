@@ -34,7 +34,7 @@ void add_commands(unsigned char *commands, size_t bytes);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
-int view_x86_sintax = 0; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
+int view_x86_sintax = 1; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
 unsigned char func_count = 0;
 unsigned int current_byte = 0;
 unsigned char *p_code = NULL;
@@ -85,6 +85,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 
 	if(p_code == NULL) {
 		error("Erro ao alocar memória",0);
+		exit(0);
 	}
 
 	while((c = fgetc(f)) != EOF){
@@ -793,5 +794,6 @@ void add_commands(unsigned char *commands, size_t bytes){
 	for (int i = 0; i < bytes; i++) {
 		p_code[current_byte] = commands[i];
 		current_byte++;
+		//printf("%02x\n",commands[i]);
 	}
 }

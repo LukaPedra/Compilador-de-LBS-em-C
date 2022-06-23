@@ -10,6 +10,7 @@ int main(int argc, char *argv[]){
 	fp = fopen("LBS_return.txt","r");
 
 	gera_codigo(fp,code,&funcLBS);
+	printf("AAAA\n");
 	if (funcLBS == NULL){
 		printf("Erro na geração\n");
 	}
