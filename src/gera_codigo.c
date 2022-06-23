@@ -30,7 +30,7 @@ void lbs_to_asm_opr(char var0, int idx0, char var1, int idx1, char op, char var2
 
 void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number );
 
-void add_commands(unsigned char *commands, size_t bytes);
+void add_commands(unsigned char *commands, size_t bytes, unsigned char code[]);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
@@ -80,12 +80,11 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 
 	func_count = 0;
-	//code = NULL;
+	code = NULL;
 	p_code = (unsigned char *)malloc(1024); // 1600 pois cada o código máximo tem 50 linhas, e o máximo que podemos ter é 32 bits, então 32 x 50 = 1600.
 
 	if(p_code == NULL) {
 		error("Erro ao alocar memória",0);
-		exit(0);
 	}
 
 	while((c = fgetc(f)) != EOF){
@@ -239,20 +238,10 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		fscanf(f, " ");
 
 	}
-	
+
 	code = (void*) p_code;
-	for (int i = 0; i < 30; i++)
-	{
-		printf("Final: %02x\n", code[i]);
-	}
-	if(func_count == 0){
-		*entry = NULL;
-	}
-	else{
-		*entry = (funcp) (p_code + func_pos[func_count - 1]);
-	}
-	printf("%x",entry);
-	free(p_code);
+
+	*entry = (funcp) (p_code + func_pos[func_count - 1]);
 }
 
 static void error (const char *msg, int line) {
@@ -800,10 +789,9 @@ void num_lendian ( unsigned char *commands, size_t pos, size_t bytes, int number
 	
 } /* fim da função num_lendian */
 
-void add_commands(unsigned char *commands, size_t bytes){
+void add_commands(unsigned char *commands, size_t bytes, unsigned char code[]){
 	for (int i = 0; i < bytes; i++) {
-		p_code[current_byte] = commands[i];
+		code[current_byte] = commands[i];
 		current_byte++;
-		printf("%02x\n",commands[i]);
 	}
 }
