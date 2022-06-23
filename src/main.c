@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
 	if (funcLBS == NULL){
 		printf("Erro na geração\n");
 	}
-
+	fclose(fp);
 	res = (*funcLBS)(3);
 	printf("%d", res);
 	return 0;
