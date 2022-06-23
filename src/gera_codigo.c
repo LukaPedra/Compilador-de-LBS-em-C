@@ -34,7 +34,7 @@ void add_commands(unsigned char *commands, size_t bytes);
 
 /* ---------------------- VARIAVEIS GLOBAIS ------------------ */
 
-int view_x86_sintax = 1; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
+int view_x86_sintax = 0; // variavel global utilizada para ativar o modo print, caso queira ver o código em assembly, isso foi utilizado para auxiliar na hora da construção do código
 unsigned char func_count = 0;
 unsigned int current_byte = 0;
 unsigned char *p_code = NULL;
@@ -80,7 +80,7 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 	}
 
 	func_count = 0;
-	code = NULL;
+	//code = NULL;
 	p_code = (unsigned char *)malloc(1024); // 1600 pois cada o código máximo tem 50 linhas, e o máximo que podemos ter é 32 bits, então 32 x 50 = 1600.
 
 	if(p_code == NULL) {
@@ -239,10 +239,20 @@ void gera_codigo(FILE *f, unsigned char code[], funcp *entry){
 		fscanf(f, " ");
 
 	}
-
+	
 	code = (void*) p_code;
-
-	*entry = (funcp) (p_code + func_pos[func_count - 1]);
+	for (int i = 0; i < 30; i++)
+	{
+		printf("Final: %02x\n", code[i]);
+	}
+	if(func_count == 0){
+		*entry = NULL;
+	}
+	else{
+		*entry = (funcp) (p_code + func_pos[func_count - 1]);
+	}
+	printf("%x",entry);
+	free(p_code);
 }
 
 static void error (const char *msg, int line) {
@@ -794,6 +804,6 @@ void add_commands(unsigned char *commands, size_t bytes){
 	for (int i = 0; i < bytes; i++) {
 		p_code[current_byte] = commands[i];
 		current_byte++;
-		//printf("%02x\n",commands[i]);
+		printf("%02x\n",commands[i]);
 	}
 }
