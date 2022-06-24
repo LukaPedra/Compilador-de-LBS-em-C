@@ -1,6 +1,3 @@
-/*Lucca Vieira Rocha 2011342 3WA*/
-/*Gustavo Molina Soares 2020209 3WA*/
-
 #include <stdio.h>
 #include <stdlib.h>
 
