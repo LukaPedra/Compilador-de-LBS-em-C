@@ -3,19 +3,19 @@
 
 int main(int argc, char *argv[]){
 	FILE *fp;
-	unsigned char code[300];
+	unsigned char code[1600];
 	funcp funcLBS;
 	int res;
 
-	fp = fopen("LBS_return.txt","r");
+	fp = fopen("LBS_factorial.txt","r");
 
-	funcLBS = gera_codigo(fp,code,funcLBS);
-	printf("AAAA\n");
+	gera_codigo(fp,code,&funcLBS);
 	if (funcLBS == NULL){
 		printf("Erro na geração\n");
 	}
-	fclose(fp);
+
 	res = (*funcLBS)(3);
 	printf("%d", res);
+	fclose(fp);
 	return 0;
 }
