@@ -1,0 +1,51 @@
+teste 1:
+function
+zret p0 $1
+v0 = p0 + $0
+v1 = v0 - $1
+v1 = call 0 v1
+v0 = v0 * v1
+ret v0
+end
+
+teste 2:
+function
+v0 = p0 - $1
+v0 = v0 + v0
+ret v0
+end
+
+teste 3:
+function
+ret $250
+end
+
+teste 4:
+function
+v0 = p0 * p0
+ret v0
+end
+function
+zret p0 $0
+v0 = p0 - $1
+v1 = call 0 p0
+v0 = call 1 v0
+v0 = v0 + v1
+ret v0
+end
+ 
+teste 5:
+function
+ret p0
+end
+
+teste 6:
+function
+v0 = p0 + $4
+v0 = v0 - $6
+v0 = v0 * $2
+ret v0
+end
+
+
+Todos os teste tiveram sucesso
