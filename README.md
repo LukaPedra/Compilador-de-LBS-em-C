@@ -101,5 +101,5 @@ O arquivo LBS tem algumas restrições:
 ## Como compilar o código
 
 ```
-gcc -Wall -Wa,--execstack -o coderun gera_codigo.c
+gcc -Wall -Wa,--execstack -o coderun gera_codigo.c main.c
 ```
